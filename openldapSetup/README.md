@@ -37,7 +37,7 @@ sudo service slapd start
 
 ## Enable/Disable Logging
 
-To enable connection and query logging, enable debug logging. 
+Enable stats logging to help with debugging connections and queries. 
 ```
 sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f logLevelDebug.ldif
 ```
