@@ -1,0 +1,5 @@
+# sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f <thisFile.ldif>
+dn: cn=config
+changetype: modify
+replace: olcLogLevel
+olcLogLevel: none
