@@ -1,0 +1,28 @@
+#!/usr/bin/python3
+
+# Reads an LDIF file from stdin and outputs a json representation of the entries 
+# only includes entries matching the baseDN and the desired attributes
+
+# Importing the required modules 
+import sys
+import ldif
+
+# Will move parameters later
+baseDN='ou=p,dc=hamshackhotline,dc=com'
+importantAttributes = ['objectclass','sn','cn','telephoneNumber','description','callsign',
+                       'givenName','name','displayName','hamshackhotlineComEntryID', 'ou']
+
+# Initialize result array
+result = {}
+
+parser = ldif.LDIFParser(sys.stdin.buffer)
+parser.parse()
+
+for dn, entry in parser.parse():
+    if (dn.endswith(baseDN)):
+        result[dn] = {}
+        for attr in importantAttributes:
+            if (attr in entry.keys()):
+                result[dn][attr] = entry[attr]
+
+print(result)

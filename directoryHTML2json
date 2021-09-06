@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+
+# Reads the HH Directory HTML page from stdin and outputs a json representation of the entries
+# desired to be in the LDAP directory
+
+# Importing the required modules 
+import sys
+from bs4 import BeautifulSoup
+
+baseDN='ou=p,dc=hamshackhotline,dc=com'
+
+result={}
+
+# first add the container for these entries
+result[baseDN]={
+    'objectclass': ['top','organizationalUnit'],
+    'ou': ['p'],
+    'description': ['container for entries']
+}
+
+soup = BeautifulSoup(sys.stdin.buffer,'html.parser')
+
+# for getting the data 
+HTML_data = soup.find_all("table")[0].find_all("tr")[1:]
+
+for element in HTML_data:
+    sub_data = []
+    for sub_element in element:
+        try:
+            sub_data.append(sub_element.get_text())
+        except:
+            continue
+    callsign=sub_data[0]
+    name=sub_data[1]
+    tel=sub_data[6]
+    dn="telephoneNumber="+tel+","+baseDN
+
+    result[dn]={
+        'objectclass': ['top','hamshackhotlineComEntry'],
+        'cn': [name,callsign], 
+        'givenName': [name],
+        'name': [name],
+        'callsign': [callsign],
+        'telephoneNumber': [tel], 
+        'displayName': [callsign+" "+name],
+        'hamshackhotlineComEntryID': [tel]
+    }
+
+print(result)
