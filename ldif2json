@@ -9,7 +9,7 @@ import ldif
 import json
 
 # Will move parameters later
-baseDN='ou=p,dc=hamshackhotline,dc=com'
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
 importantAttributes = ['objectClass','sn','cn','telephoneNumber','description','callsign',
                        'givenName','name','displayName','hamshackhotlineComEntryID', 'ou']
 

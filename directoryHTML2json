@@ -8,14 +8,14 @@ import sys
 from bs4 import BeautifulSoup
 import json
 
-baseDN='ou=p,dc=hamshackhotline,dc=com'
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
 
 result={}
 
 # first add the container for these entries
 result[baseDN]={
     'objectClass': ['top','organizationalUnit'],
-    'ou': ['p'],
+    'ou': ['phonebook'],
     'description': ['container for entries']
 }
 
