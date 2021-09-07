@@ -10,7 +10,7 @@ import json
 
 # Will move parameters later
 baseDN='ou=p,dc=hamshackhotline,dc=com'
-importantAttributes = ['objectclass','sn','cn','telephoneNumber','description','callsign',
+importantAttributes = ['objectClass','sn','cn','telephoneNumber','description','callsign',
                        'givenName','name','displayName','hamshackhotlineComEntryID', 'ou']
 
 # Initialize result array

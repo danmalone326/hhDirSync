@@ -14,7 +14,7 @@ result={}
 
 # first add the container for these entries
 result[baseDN]={
-    'objectclass': ['top','organizationalUnit'],
+    'objectClass': ['top','organizationalUnit'],
     'ou': ['p'],
     'description': ['container for entries']
 }
@@ -37,7 +37,7 @@ for element in HTML_data:
     dn="telephoneNumber="+tel+","+baseDN
 
     result[dn]={
-        'objectclass': ['top','hamshackhotlineComEntry'],
+        'objectClass': ['top','hamshackhotlineComEntry'],
         'cn': [name,callsign], 
         'givenName': [name],
         'name': [name],
