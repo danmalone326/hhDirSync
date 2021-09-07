@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+
+# Reads the HH Audio Bridges HTML page from stdin and outputs a json representation of the entries
+# desired to be in the LDAP directory
+
+# Importing the required modules 
+import sys
+from bs4 import BeautifulSoup
+import json
+
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
+
+result={}
+
+# first add the container for these entries
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phonebook'],
+    'description': ['container for entries']
+}
+
+baseDN='ou=rfLinks,ou=phonebook,dc=hamshackhotline,dc=com'
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['rfLinks'],
+    'description': ['container for entries']
+}
+
+
+soup = BeautifulSoup(sys.stdin.buffer,'html.parser')
+
+# for getting the data 
+HTML_data = soup.find_all("table")[0].find_all("tr")[1:]
+
+for element in HTML_data:
+    sub_data = []
+    for sub_element in element:
+        try:
+            sub_data.append(sub_element.get_text())
+        except:
+            continue
+    name=sub_data[1]
+    callsign=name.split()[0]
+    tel=sub_data[0]
+    id="l-"+tel
+    dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+
+    result[dn]={
+        'objectClass': ['top','hamshackhotlineComEntry'],
+        'cn': [name], 
+        'givenName': [name],
+        'name': [name],
+        'callsign': [callsign],
+        'telephoneNumber': [tel], 
+        'displayName': [name],
+        'hamshackhotlineComEntryID': [id]
+    }
+
+json.dump(result,sys.stdout)

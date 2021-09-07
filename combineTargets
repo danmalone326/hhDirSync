@@ -4,7 +4,7 @@ import sys
 import json
 
 result={}
-targetFiles = ['data/targetAudioBridges.json','data/targetPhones.json']
+targetFiles = ['data/targetAudioBridges.json','data/targetRFLinks.json','data/targetBridges.json','data/targetPhones.json']
 
 for filename in targetFiles:
     with open(filename,'r') as f:
