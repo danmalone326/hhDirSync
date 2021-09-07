@@ -8,11 +8,12 @@ olcAttributeTypes: ( 1.3.6.1.4.1.6740.4.1.2.1.1 NAME 'callsign'
   SUP name )
 olcAttributeTypes: ( 1.3.6.1.4.1.6740.4.1.2.1.2 NAME 'hamshackhotlineComEntryID'
   DESC 'an ID uniquely identifying this entry' 
+  EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
 -
 replace: olcObjectClasses
 olcObjectClasses: ( 1.3.6.1.4.1.6740.4.1.2.2.1 NAME 'hamshackhotlineComEntry'
   DESC 'An entry in the Hamshack Hotline directory'
-  SUP top STRUCTURAL
+  SUP top
   MAY ( callsign $ telephoneNumber $ sn $ givenName $ name $ cn $ displayName $ hamshackhotlineComEntryID ) )
 -
