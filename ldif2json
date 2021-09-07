@@ -6,6 +6,7 @@
 # Importing the required modules 
 import sys
 import ldif
+import json
 
 # Will move parameters later
 baseDN='ou=p,dc=hamshackhotline,dc=com'
@@ -25,4 +26,4 @@ for dn, entry in parser.parse():
             if (attr in entry.keys()):
                 result[dn][attr] = entry[attr]
 
-print(result)
+json.dump(result,sys.stdout)

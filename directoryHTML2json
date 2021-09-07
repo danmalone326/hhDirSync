@@ -6,6 +6,7 @@
 # Importing the required modules 
 import sys
 from bs4 import BeautifulSoup
+import json
 
 baseDN='ou=p,dc=hamshackhotline,dc=com'
 
@@ -46,4 +47,4 @@ for element in HTML_data:
         'hamshackhotlineComEntryID': [tel]
     }
 
-print(result)
+json.dump(result,sys.stdout)
