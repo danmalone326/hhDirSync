@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+# Importing the required modules 
+import sys
+import json
+
+currentFileName = 'data/current.json'
+targetFileName = 'data/target.json'
+
+with open(currentFileName,'r') as f:
+    current = json.load(f)
+
+with open(targetFileName,'r') as f:
+    target = json.load(f)
+
+adds=[]
+modifies=[]
+deletes=[]
+
+def entriesMatch(e1,e2):
+    # First check if both entries have the same attribute list
+    if (not (sorted(e1) == sorted(e2))):
+        return False
+
+    # If the same attributes, compare the values
+    for attr in e1:
+        if (not (sorted(e1[attr]) == sorted(e2[attr]))):
+            return False
+
+    return True
+
+
+def findAddsAndMods():
+    for dn in target:
+        if (dn in current):
+            if (not entriesMatch(target[dn],current[dn])):
+                modifies.append(dn)
+        else:
+            adds.append(dn)
+
+def findDeletes():
+    for dn in current:
+        if (not (dn in target)):
+            deletes.append(dn)
+
+def outputAddEntry(dn,entry):
+    print("dn: "+dn)
+    print("changetype: add")
+
+    for attr in entry:
+        for value in entry[attr]:
+            print(attr + ": " + value)
+    
+    print("")
+
+def outputDeleteEntry(dn):
+    print("dn: "+dn)
+    print("changetype: delete")
+    print("")
+
+def outputAddAttribute(attr,values):
+    print("add: "+attr)
+    for value in values:
+        print(attr + ": " + value)
+    print("-")
+
+def outputReplaceAttribute(attr,values):
+    print("replace: "+attr)
+    for value in values:
+        print(attr + ": " + value)
+    print("-")
+
+def outputDeleteAttribute(attr):
+    print("delete: "+attr)
+    print("-")
+
+def outputModifyEntry(dn,targetEntry,currentEntry):
+    print("dn: "+dn)
+    print("changetype: modify")
+    for attr in targetEntry:
+        if (not attr in currentEntry):
+            outputAddAttribute(attr,targetEntry[attr])
+        else:
+            if (not (sorted(targetEntry[attr]) == sorted(currentEntry[attr]))):
+                outputReplaceAttribute(attr,targetEntry[attr])
+ 
+    for attr in currentEntry:
+        if (not attr in targetEntry):
+            outputDeleteAttribute(attr)
+     
+    print("")
+
+def outputAdds():
+    for dn in adds:
+        outputAddEntry(dn,target[dn])
+
+def outputDeletes():
+    for dn in reversed(deletes):
+        outputDeleteEntry(dn)
+
+def outputModifies():
+    for dn in modifies:
+        outputModifyEntry(dn,target[dn],current[dn])
+
+
+
+findAddsAndMods()
+findDeletes()
+
+outputDeletes()
+outputModifies()
+outputAdds()
