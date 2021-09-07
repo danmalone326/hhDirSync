@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+# Importing the required modules 
+import sys
+import json
+
+result={}
+targetFiles = ['data/targetAudioBridges.json','data/targetPhones.json']
+
+for filename in targetFiles:
+    with open(filename,'r') as f:
+        result.update(json.load(f))
+
+json.dump(result,sys.stdout)
