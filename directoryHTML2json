@@ -19,6 +19,14 @@ result[baseDN]={
     'description': ['container for entries']
 }
 
+baseDN='ou=phones,ou=phonebook,dc=hamshackhotline,dc=com'
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phones'],
+    'description': ['container for entries']
+}
+
+
 soup = BeautifulSoup(sys.stdin.buffer,'html.parser')
 
 # for getting the data 
@@ -34,7 +42,9 @@ for element in HTML_data:
     callsign=sub_data[0]
     name=sub_data[1]
     tel=sub_data[6]
-    dn="telephoneNumber="+tel+","+baseDN
+    id=tel
+    dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+    dn="hamshackhotlineComEntryID="+tel+","+baseDN
 
     result[dn]={
         'objectClass': ['top','hamshackhotlineComEntry'],
@@ -44,7 +54,7 @@ for element in HTML_data:
         'callsign': [callsign],
         'telephoneNumber': [tel], 
         'displayName': [callsign+" "+name],
-        'hamshackhotlineComEntryID': [tel]
+        'hamshackhotlineComEntryID': [id]
     }
 
 json.dump(result,sys.stdout)
