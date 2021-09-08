@@ -1,0 +1,55 @@
+#!/usr/bin/python3
+
+# Reads the HH Audio Bridges HTML page from stdin and outputs a json representation of the entries
+# desired to be in the LDAP directory
+
+# Importing the required modules 
+import sys
+import json
+
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
+
+result={}
+
+# first add the container for these entries
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phonebook'],
+    'description': ['container for entries']
+}
+
+baseDN='ou=vanityEntries,ou=phonebook,dc=hamshackhotline,dc=com'
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['vanityEntries'],
+    'description': ['container for entries']
+}
+
+vanityEntries = json.load(sys.stdin)
+
+for entry in vanityEntries:
+    id="v-"+entry["id"]
+    dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+
+    allNames = [entry["displayName"]] 
+    if ("additionalNames" in entry):
+        allNames += entry["additionalNames"]
+
+    callsigns = []
+    if ("callsign" in entry):
+        callsigns += [entry["callsign"]]
+    if ("callsigns" in entry):
+        callsigns += entry["callsigns"]
+    
+    result[dn]={
+        'objectClass': ['top','hamshackhotlineComEntry'],
+        'cn': allNames + callsigns, 
+        'givenName': allNames,
+        'name': allNames,
+        'callsign': callsigns,
+        'telephoneNumber': [entry["telephoneNumber"]], 
+        'displayName': [entry["displayName"]],
+        'hamshackhotlineComEntryID': [id]
+    }
+
+json.dump(result,sys.stdout)
