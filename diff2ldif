@@ -3,8 +3,8 @@
 import sys
 import json
 
-currentFileName = 'data/current.json'
-targetFileName = 'data/target.json'
+currentFileName = sys.argv[1]
+targetFileName = sys.argv[2]
 
 with open(currentFileName,'r') as f:
     current = json.load(f)

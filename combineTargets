@@ -4,7 +4,7 @@ import sys
 import json
 
 result={}
-targetFiles = ['data/targetVanity.json','data/targetAudioBridges.json','data/targetRFLinks.json','data/targetBridges.json','data/targetPhones.json']
+targetFiles = sys.argv[1:]
 
 for filename in targetFiles:
     with open(filename,'r') as f:
