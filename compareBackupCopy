@@ -5,9 +5,12 @@ import shutil
 import filecmp
 import subprocess
 import json
+import ldif
 
 def usage():
-    print("usage: " + os.path.basename(sys.argv[0]) + " <src-file> <dest-file> <1-100 percent change allowed>")
+    print("usage: " + os.path.basename(sys.argv[0]) + " <src-file> <dest-file> <0-100>")
+    print("     src-file must exist")
+    print("     0-100 is percent change allowed for sanity check, 0 means no sanity check")
     sys.exit(1)
 
 
@@ -19,17 +22,39 @@ def doRotate(destFile):
     if (proc.returncode != 0):
         print(proc.stderr)
 
-def jsonLength(file):
+def recordCountLdif(file):
+    result=0
+    proc = subprocess.run(["/usr/bin/grep","-c","^dn: ",file], capture_output=True, text=True)
+    if (proc.returncode == 0):
+        result = int(proc.stdout)
+    return result
+
+def recordCountJson(file):
     result=0
     with open(file,'r') as f:
         result = len(json.load(f))
     return result
 
+def recordCount(file):
+    ext=os.path.splitext(file)[1]
+    if (ext == ".json"):
+        return recordCountJson(file)
+    elif (ext == ".ldif"):
+        return recordCountLdif(file)
+
 
 def passSanityCheck(srcFile, destFile, percent):
-    srcLength = jsonLength(srcFile)
-    destLength = jsonLength(destFile)
-    return (abs(srcLength - destLength)/destLength) < (percent/100)
+    result=False
+    if (percent == 0):
+        result=True
+    else:
+        srcLength = recordCount(srcFile)
+        destLength = recordCount(destFile)
+        if(destLength==0  and percent==100):
+            result==True
+        else:
+            result=(abs(srcLength - destLength)/destLength) < (percent/100)
+    return result
 
 #
 # main

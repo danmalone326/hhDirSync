@@ -58,11 +58,12 @@ targetJsonFile=${workingDir}/target.json
 targetJsonBackupFile=${dataDir}/target.json
 
 currentLdif=${workingDir}/current.ldif
+currentLdifBackupFile=${dataDir}/current.ldif
 currentJsonFile=${workingDir}/current.json
 currentJsonBackupFile=${dataDir}/current.json
 
 updatesLdif=${workingDir}/updates.ldif
-updatesBackupLdif=${dataDir}/updates.ldif
+updatesLdifBackupFile=${dataDir}/updates.ldif
 
 localSources=${phonebookHtmlFile} ${audioHtmlFile} ${linksHtmlFile} ${bridgesHtmlFile}
 sourceJsonBackupFiles=${phonebookJsonBackupFile} ${audioJsonBackupFile} ${linksJsonBackupFile} ${bridgesJsonBackupFile} ${vanityJsonBackupFile}
@@ -74,7 +75,7 @@ ${phonebookJsonFile}: ${phonebookHtmlFile}
 	${cat} ${phonebookHtmlFile} | ./directoryHTML2json > ${phonebookJsonFile}
 
 ${phonebookJsonBackupFile}: ${phonebookJsonFile}
-	-./jsonCompareBackupCopy ${phonebookJsonFile} ${phonebookJsonBackupFile} 1
+	-./compareBackupCopy ${phonebookJsonFile} ${phonebookJsonBackupFile} 1
 
 
 ${audioHtmlFile}: ${triggerFile}
@@ -84,7 +85,7 @@ ${audioJsonFile}: ${audioHtmlFile}
 	${cat} ${audioHtmlFile} | ./audioHTML2json > ${audioJsonFile}
 
 ${audioJsonBackupFile}: ${audioJsonFile}
-	-./jsonCompareBackupCopy ${audioJsonFile} ${audioJsonBackupFile} 20
+	-./compareBackupCopy ${audioJsonFile} ${audioJsonBackupFile} 20
 
 
 ${linksHtmlFile}: ${triggerFile}
@@ -94,7 +95,7 @@ ${linksJsonFile}: ${linksHtmlFile}
 	${cat} ${linksHtmlFile} | ./linksHTML2json > ${linksJsonFile}
 
 ${linksJsonBackupFile}: ${linksJsonFile}
-	-./jsonCompareBackupCopy ${linksJsonFile} ${linksJsonBackupFile} 20
+	-./compareBackupCopy ${linksJsonFile} ${linksJsonBackupFile} 20
 
 
 ${bridgesHtmlFile}: ${triggerFile}
@@ -104,36 +105,47 @@ ${bridgesJsonFile}: ${bridgesHtmlFile}
 	${cat} ${bridgesHtmlFile} | ./bridgesHTML2json > ${bridgesJsonFile}
 
 ${bridgesJsonBackupFile}: ${bridgesJsonFile}
-	-./jsonCompareBackupCopy ${bridgesJsonFile} ${bridgesJsonBackupFile} 20
+	-./compareBackupCopy ${bridgesJsonFile} ${bridgesJsonBackupFile} 20
 
 
 ${vanityJsonFile}: ${vanitySourceFile}
 	${cat} ${vanitySourceFile} | ./vanitySource2json > ${vanityJsonFile}
 
 ${vanityJsonBackupFile}: ${vanityJsonFile}
-	-./jsonCompareBackupCopy ${vanityJsonFile} ${vanityJsonBackupFile} 75
+	-./compareBackupCopy ${vanityJsonFile} ${vanityJsonBackupFile} 75
 
 
 ${currentLdif}: ${triggerFile}
 	${slapcat} -b "dc=hamshackhotline,dc=com" > ${currentLdif}
 
-${currentJsonFile}: ${currentLdif}
-	${cat} ${currentLdif} | ./ldif2json > ${currentJsonFile}
+${currentLdifBackupFile}: ${currentLdif}
+	-./compareBackupCopy ${currentLdif} ${currentLdifBackupFile} 0
+
+
+${currentJsonFile}: ${currentLdifBackupFile}
+	${cat} ${currentLdifBackupFile} | ./ldif2json > ${currentJsonFile}
 
 ${currentJsonBackupFile}: ${currentJsonFile}
-	-./jsonCompareBackupCopy ${currentJsonFile} ${currentJsonBackupFile} 10
+	-./compareBackupCopy ${currentJsonFile} ${currentJsonBackupFile} 10
 
 
 ${targetJsonFile}: ${sourceJsonBackupFiles}
 	./combineTargets ${sourceJsonBackupFiles} > ${targetJsonFile}
 
 ${targetJsonBackupFile}: ${targetJsonFile}
-	-./jsonCompareBackupCopy ${targetJsonFile} ${targetJsonBackupFile} 10
+	-./compareBackupCopy ${targetJsonFile} ${targetJsonBackupFile} 10
 
 
 ${updatesLdif}: ${currentJsonFile} ${targetJsonBackupFile}
 	./diff2ldif ${currentJsonFile} ${targetJsonBackupFile} > ${updatesLdif}
 
+# Need to do something different here.
+# Only/Always backup if >0 entries
+# Sanity check is different, ratio of this to current
+${updatesLdifBackupFile}: ${updatesLdif}
+	-./compareBackupCopy ${updatesLdif} ${updatesLdifBackupFile} 0
 
-updates: ${updatesLdif}
+
+updates: ${updatesLdifBackupFile}
 	@echo $$(${cat} ${updatesLdif} | grep ^dn: | wc -l) "update(s) generated"
+	@echo "ldapmodify -D cn=admin,dc=hamshackhotline,dc=com -x -W -f data/updates.ldif"
