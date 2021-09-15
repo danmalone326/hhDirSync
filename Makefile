@@ -6,11 +6,11 @@ workingDir=working
 dataDir=data
 
 usage:
-	@echo targets:
-	@echo \tupdates
-	@echo \tcleanUpdates
-	@echo \tlocalUpdates
-	@echo \tclean
+	@echo "targets:"
+	@echo "\tupdates"
+	@echo "\tcleanUpdates"
+	@echo "\tlocalUpdates"
+	@echo "\tclean"
 
 clean:
 	rm ${workingDir}/*
@@ -25,7 +25,10 @@ triggerFile=${workingDir}/triggerRebuild
 triggerFull: clean
 
 triggerLocal: 
-	touch ${localSources}
+	/usr/bin/touch ${localSources}
+
+${triggerFile}: 
+	/usr/bin/test -f ${triggerFile} || /usr/bin/touch ${triggerFile}
 
 phonebookUrl=https://apps.wizworks.net:9091/results.php
 phonebookHtmlFile=${workingDir}/directory.html
