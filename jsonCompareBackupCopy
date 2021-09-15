@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+import sys
+import os.path
+import shutil
+import filecmp
+import subprocess
+import json
+
+def usage():
+    print("usage: " + os.path.basename(sys.argv[0]) + " <src-file> <dest-file> <1-100 percent change allowed>")
+    sys.exit(1)
+
+
+def doCopy(srcFile, destFile):
+    shutil.copy2(srcFile,destFile)
+
+def doRotate(destFile):
+    proc = subprocess.run(["/usr/bin/savelog",destFile], capture_output=True, text=True)
+    if (proc.returncode != 0):
+        print(proc.stderr)
+
+def jsonLength(file):
+    result=0
+    with open(file,'r') as f:
+        result = len(json.load(f))
+    return result
+
+
+def passSanityCheck(srcFile, destFile, percent):
+    srcLength = jsonLength(srcFile)
+    destLength = jsonLength(destFile)
+    return (abs(srcLength - destLength)/destLength) < (percent/100)
+
+#
+# main
+#
+
+# 1 greater than number of parameters we need
+if (len(sys.argv) != 4):
+    usage()
+
+srcFile = sys.argv[1]
+destFile = sys.argv[2]
+percentStr = sys.argv[3]
+
+if ((not percentStr.isnumeric()) or (int(percentStr) < 0) or (int(percentStr) > 100)):
+    usage()
+
+percent = int(percentStr)
+
+if (not os.path.isfile(srcFile)):
+    print(srcFile + " does not exist.")
+    usage()
+
+if (not os.path.isfile(destFile)):
+    doCopy(srcFile, destFile)
+
+if (filecmp.cmp(srcFile, destFile, shallow = False)):  # true means files are the same
+    pass
+else:
+    if (passSanityCheck(srcFile, destFile, percent)):
+        doRotate(destFile)
+        doCopy(srcFile,destFile)
+    else:
+        sys.stderr.write(srcFile + " did not pass sanity check.\n")
+
