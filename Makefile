@@ -1,9 +1,30 @@
+baseDir=/home/hhagent/hhDirSync
+ldapBaseDN=dc=hamshackhotline,dc=com
+ldapAgentBindDN=cn=hhagent,dc=hamshackhotline,dc=com
+
+# Shouldn't need to change anything else
+phonebookUrl=https://apps.wizworks.net:9091/results.php
+audioUrl=https://apps.wizworks.net:9091/audio.php
+linksUrl=https://apps.wizworks.net:9091/links.php
+bridgesUrl=https://apps.wizworks.net:9091/bridges.php
+
+scriptDir=${baseDir}
+sourceDir=${baseDir}/source
+workingDir=${baseDir}/working
+dataDir=${baseDir}/data
+
+ldapAgentPasswordFile=${scriptDir}/ldapAgentPassword
+
 curl=/usr/bin/curl
 cat=/usr/bin/cat
+grep=/usr/bin/grep
+wc=/usr/bin/wc
+rm=/usr/bin/rm
+touch=/usr/bin/touch
+test=/usr/bin/test
+ldapmodify=/usr/bin/ldapmodify
 slapcat=/usr/bin/sudo -u openldap /usr/sbin/slapcat
-sourceDir=source
-workingDir=working
-dataDir=data
+
 
 usage:
 	@echo "targets:"
@@ -19,33 +40,30 @@ cleanUpdates: clean updates
 
 localUpdates: triggerLocal updates
 
-
+lastUpdateTimestampFile=${dataDir}/lastUpdateTimestamp
 triggerFile=${workingDir}/triggerRebuild
 
 triggerFull: clean
 
 triggerLocal: 
-	/usr/bin/touch ${localSources}
+	${touch} ${localSources}
+	${rm} ${currentLdif}
 
 ${triggerFile}: 
-	/usr/bin/test -f ${triggerFile} || /usr/bin/touch ${triggerFile}
+	${test} -f ${triggerFile} || ${touch} ${triggerFile}
 
-phonebookUrl=https://apps.wizworks.net:9091/results.php
 phonebookHtmlFile=${workingDir}/directory.html
 phonebookJsonFile=${workingDir}/directory.json
 phonebookJsonBackupFile=${dataDir}/directory.json
 
-audioUrl=https://apps.wizworks.net:9091/audio.php
 audioHtmlFile=${workingDir}/audio.html
 audioJsonFile=${workingDir}/audio.json
 audioJsonBackupFile=${dataDir}/audio.json
 
-linksUrl=https://apps.wizworks.net:9091/links.php
 linksHtmlFile=${workingDir}/links.html
 linksJsonFile=${workingDir}/links.json
 linksJsonBackupFile=${dataDir}/links.json
 
-bridgesUrl=https://apps.wizworks.net:9091/bridges.php
 bridgesHtmlFile=${workingDir}/bridges.html
 bridgesJsonFile=${workingDir}/bridges.json
 bridgesJsonBackupFile=${dataDir}/bridges.json
@@ -69,71 +87,71 @@ localSources=${phonebookHtmlFile} ${audioHtmlFile} ${linksHtmlFile} ${bridgesHtm
 sourceJsonBackupFiles=${phonebookJsonBackupFile} ${audioJsonBackupFile} ${linksJsonBackupFile} ${bridgesJsonBackupFile} ${vanityJsonBackupFile}
 
 ${phonebookHtmlFile}: ${triggerFile}
-	${curl} -o ${phonebookHtmlFile} ${phonebookUrl}
+	${curl} -s -o ${phonebookHtmlFile} ${phonebookUrl}
 
 ${phonebookJsonFile}: ${phonebookHtmlFile}
 	${cat} ${phonebookHtmlFile} | ./directoryHTML2json > ${phonebookJsonFile}
 
 ${phonebookJsonBackupFile}: ${phonebookJsonFile}
-	-./compareBackupCopy ${phonebookJsonFile} ${phonebookJsonBackupFile} 1
+	-${scriptDir}/compareBackupCopy -s ${phonebookJsonFile} -d ${phonebookJsonBackupFile} -p 1
 
 
 ${audioHtmlFile}: ${triggerFile}
-	${curl} -o ${audioHtmlFile} ${audioUrl}
+	${curl} -s -o ${audioHtmlFile} ${audioUrl}
 
 ${audioJsonFile}: ${audioHtmlFile}
 	${cat} ${audioHtmlFile} | ./audioHTML2json > ${audioJsonFile}
 
 ${audioJsonBackupFile}: ${audioJsonFile}
-	-./compareBackupCopy ${audioJsonFile} ${audioJsonBackupFile} 20
+	-${scriptDir}/compareBackupCopy -s ${audioJsonFile} -d ${audioJsonBackupFile} -p 20
 
 
 ${linksHtmlFile}: ${triggerFile}
-	${curl} -o ${linksHtmlFile} ${linksUrl}
+	${curl} -s -o ${linksHtmlFile} ${linksUrl}
 
 ${linksJsonFile}: ${linksHtmlFile}
 	${cat} ${linksHtmlFile} | ./linksHTML2json > ${linksJsonFile}
 
 ${linksJsonBackupFile}: ${linksJsonFile}
-	-./compareBackupCopy ${linksJsonFile} ${linksJsonBackupFile} 20
+	-${scriptDir}/compareBackupCopy -s ${linksJsonFile} -d ${linksJsonBackupFile} -p 20
 
 
 ${bridgesHtmlFile}: ${triggerFile}
-	${curl} -o ${bridgesHtmlFile} ${bridgesUrl}
+	${curl} -s -o ${bridgesHtmlFile} ${bridgesUrl}
 
 ${bridgesJsonFile}: ${bridgesHtmlFile}
 	${cat} ${bridgesHtmlFile} | ./bridgesHTML2json > ${bridgesJsonFile}
 
 ${bridgesJsonBackupFile}: ${bridgesJsonFile}
-	-./compareBackupCopy ${bridgesJsonFile} ${bridgesJsonBackupFile} 20
+	-${scriptDir}/compareBackupCopy -s ${bridgesJsonFile} -d ${bridgesJsonBackupFile} -p 20
 
 
 ${vanityJsonFile}: ${vanitySourceFile}
 	${cat} ${vanitySourceFile} | ./vanitySource2json > ${vanityJsonFile}
 
 ${vanityJsonBackupFile}: ${vanityJsonFile}
-	-./compareBackupCopy ${vanityJsonFile} ${vanityJsonBackupFile} 75
+	-${scriptDir}/compareBackupCopy -s ${vanityJsonFile} -d ${vanityJsonBackupFile} -p 75
 
 
 ${currentLdif}: ${triggerFile}
-	${slapcat} -b "dc=hamshackhotline,dc=com" > ${currentLdif}
+	${slapcat} -b "${ldapBaseDN}" > ${currentLdif}
 
-${currentLdifBackupFile}: ${currentLdif}
-	-./compareBackupCopy ${currentLdif} ${currentLdifBackupFile} 0
+${currentLdifBackupFile}: ${currentLdif} 
+	-${scriptDir}/compareBackupCopy -s ${currentLdif} -d ${currentLdifBackupFile} -p 0
 
 
 ${currentJsonFile}: ${currentLdifBackupFile}
 	${cat} ${currentLdifBackupFile} | ./ldif2json > ${currentJsonFile}
 
 ${currentJsonBackupFile}: ${currentJsonFile}
-	-./compareBackupCopy ${currentJsonFile} ${currentJsonBackupFile} 10
+	-${scriptDir}/compareBackupCopy -s ${currentJsonFile} -d ${currentJsonBackupFile} -p 10
 
 
 ${targetJsonFile}: ${sourceJsonBackupFiles}
-	./combineTargets ${sourceJsonBackupFiles} > ${targetJsonFile}
+	${scriptDir}/combineTargets ${sourceJsonBackupFiles} > ${targetJsonFile}
 
 ${targetJsonBackupFile}: ${targetJsonFile}
-	-./compareBackupCopy ${targetJsonFile} ${targetJsonBackupFile} 10
+	-${scriptDir}/compareBackupCopy -s ${targetJsonFile} -d ${targetJsonBackupFile} -p 10
 
 
 ${updatesLdif}: ${currentJsonFile} ${targetJsonBackupFile}
@@ -143,9 +161,13 @@ ${updatesLdif}: ${currentJsonFile} ${targetJsonBackupFile}
 # Only/Always backup if >0 entries
 # Sanity check is different, ratio of this to current
 ${updatesLdifBackupFile}: ${updatesLdif}
-	-./compareBackupCopy ${updatesLdif} ${updatesLdifBackupFile} 0
+	-${scriptDir}/compareBackupCopy -s ${updatesLdif} -d ${updatesLdifBackupFile} -p 10 -c ${currentLdifBackupFile} -n -u 
 
 
-updates: ${updatesLdifBackupFile}
-	@echo $$(${cat} ${updatesLdif} | grep ^dn: | wc -l) "update(s) generated"
-	@echo "ldapmodify -D cn=admin,dc=hamshackhotline,dc=com -x -W -f data/updates.ldif"
+${lastUpdateTimestampFile}: ${updatesLdifBackupFile}
+	touch ${lastUpdateTimestampFile}
+	@echo $$(${cat} ${updatesLdifBackupFile} | ${grep} ^dn: | ${wc} -l) "update(s) generated"
+	${ldapmodify} -D ${ldapAgentBindDN} -x -y ${ldapAgentPasswordFile} -f ${updatesLdifBackupFile}
+
+
+updates: ${lastUpdateTimestampFile}

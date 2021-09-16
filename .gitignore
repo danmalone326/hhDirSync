@@ -6,4 +6,6 @@ data/
 source/
 working/
 
+# ldap password file
+ldapAgentPassword
 

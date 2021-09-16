@@ -6,12 +6,60 @@ import filecmp
 import subprocess
 import json
 import ldif
+import getopt
+
+srcFile=""
+destFile=""
+percent=0
+countFile=""
+nonZero=False
+updatesOnly=False
 
 def usage():
-    print("usage: " + os.path.basename(sys.argv[0]) + " <src-file> <dest-file> <0-100>")
+    print("usage: " + os.path.basename(sys.argv[0]) + " [-h] -s <srcFile> -d <destFile> -p <0-100> [-c <countFile>] [-n]")
     print("     src-file must exist")
     print("     0-100 is percent change allowed for sanity check, 0 means no sanity check")
     sys.exit(1)
+
+def readParameters():
+    global srcFile
+    global destFile
+    global percent
+    global countFile
+    global nonZero
+    global updatesOnly
+
+    percentStr = ""
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"s:d:p:c:nhu",["srcFile=","destFile=","percent=","countFile=","nonZero","help","updatesOnly"])
+    except getopt.GetoptError as err:
+        print(err)  # will print something like "option -a not recognized"
+        usage()
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+        elif opt in ("-s", "--srcFile"):
+            srcFile = arg
+        elif opt in ("-d", "--destFile"):
+            destFile = arg
+        elif opt in ("-p", "--percent"):
+            percentStr = arg
+            if ((not percentStr.isnumeric()) or (int(percentStr) < 0) or (int(percentStr) > 100)):
+                usage()
+            percent = int(percentStr)
+        elif opt in ("-c", "--countFile"):
+            countFile = arg
+        elif opt in ("-n", "--nonZero"):
+            nonZero = True
+        elif opt in ("-u", "--updatesOnly"):
+            updatesOnly = True
+    
+    if (not (srcFile and destFile and percentStr)):
+        usage()
+
+    if (not (countFile)):
+        countFile=destFile
 
 
 def doCopy(srcFile, destFile):
@@ -43,35 +91,28 @@ def recordCount(file):
         return recordCountLdif(file)
 
 
-def passSanityCheck(srcFile, destFile, percent):
+def passSanityCheck(newFile, currentFile, percent):
+    global updatesOnly
+    
     result=False
     if (percent == 0):
         result=True
     else:
-        srcLength = recordCount(srcFile)
-        destLength = recordCount(destFile)
-        if(destLength==0  and percent==100):
+        newLength = recordCount(newFile)
+        currentLength = recordCount(currentFile)
+        if(currentLength==0 and percent==100):
             result==True
+        elif (updatesOnly):
+            result=(newLength/currentLength) < (percent/100)
         else:
-            result=(abs(srcLength - destLength)/destLength) < (percent/100)
+            result=(abs(newLength - currentLength)/currentLength) < (percent/100)
     return result
 
 #
 # main
 #
 
-# 1 greater than number of parameters we need
-if (len(sys.argv) != 4):
-    usage()
-
-srcFile = sys.argv[1]
-destFile = sys.argv[2]
-percentStr = sys.argv[3]
-
-if ((not percentStr.isnumeric()) or (int(percentStr) < 0) or (int(percentStr) > 100)):
-    usage()
-
-percent = int(percentStr)
+readParameters()
 
 if (not os.path.isfile(srcFile)):
     print(srcFile + " does not exist.")
@@ -80,10 +121,12 @@ if (not os.path.isfile(srcFile)):
 if (not os.path.isfile(destFile)):
     doCopy(srcFile, destFile)
 
-if (filecmp.cmp(srcFile, destFile, shallow = False)):  # true means files are the same
+if (nonZero and (recordCount(srcFile) == 0)):
+    pass
+elif ((not nonZero) and (filecmp.cmp(srcFile, destFile, shallow = False))):  # true means files are the same
     pass
 else:
-    if (passSanityCheck(srcFile, destFile, percent)):
+    if (passSanityCheck(srcFile, countFile, percent)):
         doRotate(destFile)
         doCopy(srcFile,destFile)
     else:
