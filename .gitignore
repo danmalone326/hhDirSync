@@ -1,11 +1,6 @@
 # for temporary files
 tmp/
 
-# data files
-data/
-source/
-working/
-
 # ldap password file
 ldapAgentPassword
 
