@@ -151,7 +151,7 @@ ${targetJsonFile}: ${sourceJsonBackupFiles}
 	${scriptDir}/combineTargets ${sourceJsonBackupFiles} > ${targetJsonFile}
 
 ${targetJsonBackupFile}: ${targetJsonFile}
-	-${scriptDir}/compareBackupCopy -s ${targetJsonFile} -d ${targetJsonBackupFile} -p 10
+	${scriptDir}/compareBackupCopy -s ${targetJsonFile} -d ${targetJsonBackupFile} -p 10
 
 
 ${updatesLdif}: ${currentJsonBackupFile} ${targetJsonBackupFile}
