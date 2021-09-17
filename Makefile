@@ -154,8 +154,8 @@ ${targetJsonBackupFile}: ${targetJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${targetJsonFile} -d ${targetJsonBackupFile} -p 10
 
 
-${updatesLdif}: ${currentJsonFile} ${targetJsonBackupFile}
-	./diff2ldif ${currentJsonFile} ${targetJsonBackupFile} > ${updatesLdif}
+${updatesLdif}: ${currentJsonBackupFile} ${targetJsonBackupFile}
+	${scriptDir}/diff2ldif ${currentJsonBackupFile} ${targetJsonBackupFile} > ${updatesLdif}
 
 # Need to do something different here.
 # Only/Always backup if >0 entries
