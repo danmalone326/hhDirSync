@@ -34,7 +34,7 @@ usage:
 	@echo "\tclean"
 
 clean:
-	rm ${workingDir}/*
+	-rm -f ${workingDir}/*
 
 cleanUpdates: clean updates
 
@@ -47,7 +47,7 @@ triggerFull: clean
 
 triggerLocal: 
 	${touch} ${localSources}
-	${rm} ${currentLdif}
+	-${rm} -f ${currentLdif}
 
 ${triggerFile}: 
 	${test} -f ${triggerFile} || ${touch} ${triggerFile}

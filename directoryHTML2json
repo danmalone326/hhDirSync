@@ -34,7 +34,7 @@ HTML_data = soup.find_all("table")[0].find_all("tr")[1:]
 
 for element in HTML_data:
     sub_data = []
-    for sub_element in element:
+    for sub_element in element.find_all("td"):
         try:
             sub_data.append(sub_element.get_text())
         except:
