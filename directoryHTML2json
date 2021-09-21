@@ -42,9 +42,16 @@ for element in HTML_data:
     callsign=sub_data[0]
     name=sub_data[1]
     tel=sub_data[6]
-    id=tel
+    idPrefix=tel
+
+    id=idPrefix
     dn="hamshackhotlineComEntryID=" + id + ","+baseDN
-    dn="hamshackhotlineComEntryID="+tel+","+baseDN
+
+    count=0
+    while (dn in result):
+        count+=1
+        id=idPrefix + "-" + str(count)
+        dn="hamshackhotlineComEntryID=" + id + ","+baseDN
 
     result[dn]={
         'objectClass': ['top','hamshackhotlineComEntry'],
