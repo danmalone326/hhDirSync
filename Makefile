@@ -19,6 +19,7 @@ curl=/usr/bin/curl
 cat=/usr/bin/cat
 grep=/usr/bin/grep
 wc=/usr/bin/wc
+savelog=/usr/bin/savelog
 rm=/usr/bin/rm
 touch=/usr/bin/touch
 test=/usr/bin/test
@@ -32,6 +33,19 @@ usage:
 	@echo "\tcleanUpdates"
 	@echo "\tlocalUpdates"
 	@echo "\tclean"
+	@echo "\tsanityCheckOverride"
+
+sanityCheckOverride:
+	@echo "targets to override sanity checks:"
+	@echo "\tphonebookJsonOverrideSanityCheck"
+	@echo "\taudioJsonOverrideSanityCheck"
+	@echo "\tlinksJsonOverrideSanityCheck"
+	@echo "\tbridgesJsonOverrideSanityCheck"
+	@echo "\tvanityJsonOverrideSanityCheck"
+	@echo "\tcurrentLdifOverrideSanityCheck"
+	@echo "\tcurrentJsonOverrideSanityCheck"
+	@echo "\ttargetJsonOverrideSanityCheck"
+
 
 clean:
 	-rm -f ${workingDir}/*
@@ -95,6 +109,9 @@ ${phonebookJsonFile}: ${phonebookHtmlFile}
 ${phonebookJsonBackupFile}: ${phonebookJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${phonebookJsonFile} -d ${phonebookJsonBackupFile} -p 1
 
+phonebookJsonOverrideSanityCheck: 
+	@${savelog} ${phonebookJsonBackupFile}
+
 
 ${audioHtmlFile}: ${triggerFile}
 	${curl} -s -o ${audioHtmlFile} ${audioUrl}
@@ -104,6 +121,9 @@ ${audioJsonFile}: ${audioHtmlFile}
 
 ${audioJsonBackupFile}: ${audioJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${audioJsonFile} -d ${audioJsonBackupFile} -p 20
+
+audioJsonOverrideSanityCheck: 
+	@${savelog} ${audioJsonBackupFile}
 
 
 ${linksHtmlFile}: ${triggerFile}
@@ -115,6 +135,9 @@ ${linksJsonFile}: ${linksHtmlFile}
 ${linksJsonBackupFile}: ${linksJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${linksJsonFile} -d ${linksJsonBackupFile} -p 20
 
+linksJsonOverrideSanityCheck: 
+	@${savelog} ${linksJsonBackupFile}
+
 
 ${bridgesHtmlFile}: ${triggerFile}
 	${curl} -s -o ${bridgesHtmlFile} ${bridgesUrl}
@@ -125,6 +148,9 @@ ${bridgesJsonFile}: ${bridgesHtmlFile}
 ${bridgesJsonBackupFile}: ${bridgesJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${bridgesJsonFile} -d ${bridgesJsonBackupFile} -p 20
 
+bridgesJsonOverrideSanityCheck: 
+	@${savelog} ${bridgesJsonBackupFile}
+
 
 ${vanityJsonFile}: ${vanitySourceFile}
 	${cat} ${vanitySourceFile} | ./vanitySource2json > ${vanityJsonFile}
@@ -132,12 +158,18 @@ ${vanityJsonFile}: ${vanitySourceFile}
 ${vanityJsonBackupFile}: ${vanityJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${vanityJsonFile} -d ${vanityJsonBackupFile} -p 75
 
+vanityJsonOverrideSanityCheck: 
+	@${savelog} ${vanityJsonBackupFile}
+
 
 ${currentLdif}: ${triggerFile}
 	${slapcat} -b "${ldapBaseDN}" > ${currentLdif}
 
 ${currentLdifBackupFile}: ${currentLdif} 
-	-${scriptDir}/compareBackupCopy -s ${currentLdif} -d ${currentLdifBackupFile} -p 0
+	-${scriptDir}/compareBackupCopy -s ${currentLdif} -d ${currentLdifBackupFile} -p 50
+
+currentLdifOverrideSanityCheck: 
+	@${savelog} ${currentLdifBackupFile}
 
 
 ${currentJsonFile}: ${currentLdifBackupFile}
@@ -146,12 +178,18 @@ ${currentJsonFile}: ${currentLdifBackupFile}
 ${currentJsonBackupFile}: ${currentJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${currentJsonFile} -d ${currentJsonBackupFile} -p 10
 
+currentJsonOverrideSanityCheck: 
+	@${savelog} ${currentJsonBackupFile}
+
 
 ${targetJsonFile}: ${sourceJsonBackupFiles}
 	${scriptDir}/combineTargets ${sourceJsonBackupFiles} > ${targetJsonFile}
 
 ${targetJsonBackupFile}: ${targetJsonFile}
 	${scriptDir}/compareBackupCopy -s ${targetJsonFile} -d ${targetJsonBackupFile} -p 10
+
+targetJsonOverrideSanityCheck: 
+	@${savelog} ${targetJsonBackupFile}
 
 
 ${updatesLdif}: ${currentJsonBackupFile} ${targetJsonBackupFile}

@@ -4,3 +4,5 @@ tmp/
 # ldap password file
 ldapAgentPassword
 
+# vscode settings
+.vscode/
