@@ -74,18 +74,23 @@ def outputDeleteAttribute(attr):
     print("-")
 
 def outputModifyEntry(dn,targetEntry,currentEntry):
-    print("dn: "+dn)
-    print("changetype: modify")
-    for attr in targetEntry:
-        if (not attr in currentEntry):
-            outputAddAttribute(attr,targetEntry[attr])
-        else:
-            if (not (sorted(targetEntry[attr]) == sorted(currentEntry[attr]))):
-                outputReplaceAttribute(attr,targetEntry[attr])
- 
-    for attr in currentEntry:
-        if (not attr in targetEntry):
-            outputDeleteAttribute(attr)
+    # if objectclass difference, delete then add
+    if (not (sorted(targetEntry['objectClass']) == sorted(currentEntry['objectClass']))):
+        outputDeleteEntry(dn)
+        outputAddEntry(dn,targetEntry)
+    else:
+        print("dn: "+dn)
+        print("changetype: modify")
+        for attr in targetEntry:
+            if (not attr in currentEntry):
+                outputAddAttribute(attr,targetEntry[attr])
+            else:
+                if (not (sorted(targetEntry[attr]) == sorted(currentEntry[attr]))):
+                    outputReplaceAttribute(attr,targetEntry[attr])
+    
+        for attr in currentEntry:
+            if (not attr in targetEntry):
+                outputDeleteAttribute(attr)
      
     print("")
 
