@@ -21,6 +21,7 @@ grep=/usr/bin/grep
 wc=/usr/bin/wc
 savelog=/usr/bin/savelog
 rm=/usr/bin/rm
+cp=/usr/bin/cp
 touch=/usr/bin/touch
 test=/usr/bin/test
 ldapmodify=/usr/bin/ldapmodify
@@ -45,6 +46,7 @@ sanityCheckOverride:
 	@echo "\tcurrentLdifOverrideSanityCheck"
 	@echo "\tcurrentJsonOverrideSanityCheck"
 	@echo "\ttargetJsonOverrideSanityCheck"
+	@echo "\tupdatesLdifOverrideSanityCheck"
 
 
 clean:
@@ -200,6 +202,10 @@ ${updatesLdif}: ${currentJsonBackupFile} ${targetJsonBackupFile}
 # Sanity check is different, ratio of this to current
 ${updatesLdifBackupFile}: ${updatesLdif}
 	-${scriptDir}/compareBackupCopy -s ${updatesLdif} -d ${updatesLdifBackupFile} -p 10 -c ${currentLdifBackupFile} -n -u 
+
+updatesLdifOverrideSanityCheck: 
+	@${savelog} ${updatesLdifBackupFile}
+	@${cp} ${updatesLdif} ${updatesLdifBackupFile}
 
 
 ${lastUpdateTimestampFile}: ${updatesLdifBackupFile}
