@@ -3,10 +3,10 @@ ldapBaseDN=dc=hamshackhotline,dc=com
 ldapAgentBindDN=cn=hhagent,dc=hamshackhotline,dc=com
 
 # Shouldn't need to change anything else
-phonebookUrl=https://apps.wizworks.net:9091/results.php
-audioUrl=https://apps.wizworks.net:9091/audio.php
-linksUrl=https://apps.wizworks.net:9091/links.php
-bridgesUrl=https://apps.wizworks.net:9091/bridges.php
+phonebookUrl=https://apps.hamshackhotline.com:9091/results.php
+audioUrl=https://apps.hamshackhotline.com:9091/audio.php
+linksUrl=https://apps.hamshackhotline.com:9091/links.php
+bridgesUrl=https://apps.hamshackhotline.com:9091/bridges.php
 
 scriptDir=${baseDir}
 sourceDir=${baseDir}/source
