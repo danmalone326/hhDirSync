@@ -77,7 +77,7 @@ for element in HTML_data:
         'hamshackhotlineComEntryID': [id]
     }
     if (city):
-        result[dn]['c'] = [city]
+        result[dn]['l'] = [city]
     if (state):
         result[dn]['st'] = [state]
     if (country):
