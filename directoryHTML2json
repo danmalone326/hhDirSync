@@ -74,10 +74,14 @@ for element in HTML_data:
         'callsign': [callsign],
         'telephoneNumber': [tel], 
         'displayName': [callsign+" "+name],
-        'l': [city],
-        'st': [state],
-        'c': [country],
         'hamshackhotlineComEntryID': [id]
     }
+    if (city):
+        result[dn]['c'] = city
+    if (state):
+        result[dn]['st'] = state
+    if (country):
+        result[dn]['c'] = country
+
 
 json.dump(result,sys.stdout)
