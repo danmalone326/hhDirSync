@@ -77,11 +77,11 @@ for element in HTML_data:
         'hamshackhotlineComEntryID': [id]
     }
     if (city):
-        result[dn]['c'] = city
+        result[dn]['c'] = [city]
     if (state):
-        result[dn]['st'] = state
+        result[dn]['st'] = [state]
     if (country):
-        result[dn]['c'] = country
+        result[dn]['c'] = [country]
 
 
 json.dump(result,sys.stdout)
