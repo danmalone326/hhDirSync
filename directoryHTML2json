@@ -80,7 +80,7 @@ for element in HTML_data:
         result[dn]['l'] = [city]
     if (state):
         result[dn]['st'] = [state]
-    if (country):
+    if (country and (len(country) == 2)):
         result[dn]['c'] = [country]
 
 
