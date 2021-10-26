@@ -39,8 +39,21 @@ for element in HTML_data:
             sub_data.append(sub_element.get_text())
         except:
             continue
+ 
+    # 0 Callsign
+    # 1 Name
+    # 2 City
+    # 3 State
+    # 4 Country
+    # 5 Network
+    # 6 HH Number
+    # 7 Ring Group
+ 
     callsign=sub_data[0]
     name=sub_data[1]
+    city=sub_data[2]
+    state=sub_data[3]
+    country=sub_data[4]
     tel=sub_data[6]
     idPrefix=tel
 
@@ -61,6 +74,9 @@ for element in HTML_data:
         'callsign': [callsign],
         'telephoneNumber': [tel], 
         'displayName': [callsign+" "+name],
+        'l': [city],
+        'st': [state],
+        'c': [country],
         'hamshackhotlineComEntryID': [id]
     }
 

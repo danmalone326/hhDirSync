@@ -1,4 +1,4 @@
 dn: olcDatabase={1}mdb,cn=config
 replace: olcDbIndex
 olcDbIndex: objectClass eq
-olcDbIndex: sn,cn,givenName,name,callsign eq,sub
+olcDbIndex: sn,cn,givenName,name,callsign,l,st,c eq,sub

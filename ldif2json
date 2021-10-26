@@ -11,7 +11,8 @@ import json
 # Will move parameters later
 baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
 importantAttributes = ['objectClass','sn','cn','telephoneNumber','description','callsign',
-                       'givenName','name','displayName','hamshackhotlineComEntryID', 'ou']
+                       'givenName','name','displayName','hamshackhotlineComEntryID', 'ou',
+                       'l','st','c']
 
 # Initialize result array
 result = {}
