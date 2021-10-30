@@ -1,6 +1,14 @@
-baseDir=/home/hhagent/hhDirSync
-ldapBaseDN=dc=hamshackhotline,dc=com
-ldapAgentBindDN=cn=hhagent,dc=hamshackhotline,dc=com
+propertyFile=hhAgent.properties
+ifeq ("$(wildcard $(propertyFile))","")
+$(error $(propertyFile) does not exist.)
+endif
+
+getProperty = $(shell grep "^$(1)=" ${propertyFile} | cut -d"=" -f2-)
+
+baseDir := $(call getProperty,baseDir)
+ldapBaseDN := $(call getProperty,ldapBaseDN)
+ldapAgentBindDN := $(call getProperty,ldapAgentBindDN)
+ldapAgentBindPassword := $(call getProperty,ldapAgentBindPassword)
 
 # Shouldn't need to change anything else
 phonebookUrl=https://apps.hamshackhotline.com:9091/results.php
@@ -13,7 +21,7 @@ sourceDir=${baseDir}/source
 workingDir=${baseDir}/working
 dataDir=${baseDir}/data
 
-ldapAgentPasswordFile=${scriptDir}/ldapAgentPassword
+ldapAgentPasswordFile=${scriptDir}/ldapAgentPassword.properties
 
 curl=/usr/bin/curl
 cat=/usr/bin/cat
@@ -209,9 +217,12 @@ updatesLdifOverrideSanityCheck:
 
 
 ${lastUpdateTimestampFile}: ${updatesLdifBackupFile}
-	touch ${lastUpdateTimestampFile}
+	@${touch} ${lastUpdateTimestampFile}
 	@echo $$(${cat} ${updatesLdifBackupFile} | ${grep} ^dn: | ${wc} -l) "update(s) generated"
+	@echo -n ${ldapAgentBindPassword} > ${ldapAgentPasswordFile}
+	@chmod og-rwx ${ldapAgentPasswordFile}
 	${ldapmodify} -D ${ldapAgentBindDN} -x -y ${ldapAgentPasswordFile} -f ${updatesLdifBackupFile}
+	@${rm} -f ${ldapAgentPasswordFile}
 
 
 updates: ${lastUpdateTimestampFile}

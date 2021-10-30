@@ -1,0 +1,16 @@
+# Parameters for the agent
+#
+# No space around the equalsign
+# e.g.  parameter=value
+
+# basedir - the base directory where the agent is installed
+baseDir=
+
+# ldapBaseDN - The base DN in the LDAP DIT where the directory will be located
+ldapBaseDN=
+
+# ldapAgentBindDN - The DN of the privileged LDAP entry the agent will use to make changes
+ldapAgentBindDN=
+
+# ldapAgentBindPassword - The Password for the above entry
+ldapAgentBindPassword=

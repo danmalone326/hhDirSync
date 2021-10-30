@@ -1,8 +1,8 @@
 # for temporary files
 tmp/
 
-# ldap password file
-ldapAgentPassword
+# Properties file may also include passwords
+*.properties
 
 # vscode settings
 .vscode/
