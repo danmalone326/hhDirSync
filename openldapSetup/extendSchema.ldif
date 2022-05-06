@@ -1,4 +1,9 @@
 dn: cn={4}hamshackhotlineComEntry,cn=schema,cn=config
+changetype: add
+objectClass: olcSchemaConfig
+cn: {4}hamshackhotlineComEntry
+
+dn: cn={4}hamshackhotlineComEntry,cn=schema,cn=config
 changetype: modify
 #objectClass: olcSchemaConfig
 #cn: {4}hamshackhotlineComEntry
