@@ -13,7 +13,7 @@ Extend the schema by adding 2 attributes and an objectclass.
 
 The file `extendSchema.ldif` will add the needed attributes and objectclass to the schema.
 ```
-sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f extendSchema.ldif
+sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -c -f extendSchema.ldif
 ```
 
 Verify the schema is valid.
