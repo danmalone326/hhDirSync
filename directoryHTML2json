@@ -49,12 +49,12 @@ for element in HTML_data:
     # 6 HH Number
     # 7 Ring Group
  
-    callsign=sub_data[0]
-    name=sub_data[1]
-    city=sub_data[2]
-    state=sub_data[3]
-    country=sub_data[4]
-    tel=sub_data[6]
+    callsign=sub_data[0].strip()
+    name=sub_data[1].strip()
+    city=sub_data[2].strip()
+    state=sub_data[3].strip()
+    country=sub_data[4].strip()
+    tel=sub_data[6].strip()
     idPrefix=tel
 
     id=idPrefix

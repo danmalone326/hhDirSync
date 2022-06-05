@@ -39,9 +39,9 @@ for element in HTML_data:
             sub_data.append(sub_element.get_text())
         except:
             continue
-    name=sub_data[0]
-    tel=sub_data[3]
-    public=sub_data[1]
+    name=sub_data[0].strip()
+    tel=sub_data[3].strip()
+    public=sub_data[1].strip()
     if (public == "Y"):
         displayName=name
     else:

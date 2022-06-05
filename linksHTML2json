@@ -39,9 +39,9 @@ for element in HTML_data:
             sub_data.append(sub_element.get_text())
         except:
             continue
-    name=sub_data[1]
-    callsign=name.split()[0]
-    tel=sub_data[0]
+    name=sub_data[1].strip()
+    callsign=name.split()[0].strip()
+    tel=sub_data[0].strip()
     id="l-"+tel
     dn="hamshackhotlineComEntryID=" + id + ","+baseDN
 
