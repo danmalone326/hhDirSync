@@ -1,0 +1,16 @@
+dn: cn=hhagent,dc=hamshackhotline,dc=com
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: hhagent
+description: Hamshack Hotline Sync Agent
+userPassword: {crypt}x
+
+dn: cn=anonymous,dc=hamshackhotline,dc=com
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: anonymous
+description: User to simulate anonymous bind for phones that do not support it
+userPassword: {crypt}x
+
