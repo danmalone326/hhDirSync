@@ -30,7 +30,7 @@ result[baseDN]={
 soup = BeautifulSoup(sys.stdin.buffer,'html.parser')
 
 # for getting the data 
-HTML_data = soup.find_all("table")[0].find_all("tr")[1:]
+HTML_data = soup.find_all("table")[2].find("tbody").find_all("tr"))
 
 for element in HTML_data:
     sub_data = []
