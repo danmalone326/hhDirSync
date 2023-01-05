@@ -14,6 +14,7 @@ ldapAgentBindPassword := $(call getProperty,ldapAgentBindPassword)
 phonebookUrl=https://apps.hamshackhotline.com:9091/results.php
 audioUrl=https://apps.hamshackhotline.com:9091/audio.php
 linksUrl=https://apps.hamshackhotline.com:9091/links.php
+arduinoUrl=https://apps.hamshackhotline.com:9091/arduino.php
 bridgesUrl=https://apps.hamshackhotline.com:9091/bridges.php
 
 scriptDir=${baseDir}
@@ -88,6 +89,10 @@ linksHtmlFile=${workingDir}/links.html
 linksJsonFile=${workingDir}/links.json
 linksJsonBackupFile=${dataDir}/links.json
 
+arduinoHtmlFile=${workingDir}/arduino.html
+arduinoJsonFile=${workingDir}/arduino.json
+arduinoJsonBackupFile=${dataDir}/arduino.json
+
 bridgesHtmlFile=${workingDir}/bridges.html
 bridgesJsonFile=${workingDir}/bridges.json
 bridgesJsonBackupFile=${dataDir}/bridges.json
@@ -107,8 +112,8 @@ currentJsonBackupFile=${dataDir}/current.json
 updatesLdif=${workingDir}/updates.ldif
 updatesLdifBackupFile=${dataDir}/updates.ldif
 
-localSources=${phonebookHtmlFile} ${audioHtmlFile} ${linksHtmlFile} ${bridgesHtmlFile}
-sourceJsonBackupFiles=${phonebookJsonBackupFile} ${audioJsonBackupFile} ${linksJsonBackupFile} ${bridgesJsonBackupFile} ${vanityJsonBackupFile}
+localSources=${phonebookHtmlFile} ${audioHtmlFile} ${linksHtmlFile} ${arduinoHtmlFile} ${bridgesHtmlFile}
+sourceJsonBackupFiles=${phonebookJsonBackupFile} ${audioJsonBackupFile} ${linksJsonBackupFile} ${arduinoJsonBackupFile} ${bridgesJsonBackupFile} ${vanityJsonBackupFile}
 
 ${phonebookHtmlFile}: ${triggerFile}
 	${curl} -s -o ${phonebookHtmlFile} ${phonebookUrl}
@@ -147,6 +152,19 @@ ${linksJsonBackupFile}: ${linksJsonFile}
 
 linksJsonOverrideSanityCheck: 
 	@${savelog} ${linksJsonBackupFile}
+
+
+${arduinoHtmlFile}: ${triggerFile}
+	${curl} -s -o ${arduinoHtmlFile} ${arduinoUrl}
+
+${arduinoJsonFile}: ${arduinoHtmlFile}
+	${cat} ${arduinoHtmlFile} | ./arduinoHTML2json > ${arduinoJsonFile}
+
+${arduinoJsonBackupFile}: ${arduinoJsonFile}
+	-${scriptDir}/compareBackupCopy -s ${arduinoJsonFile} -d ${arduinoJsonBackupFile} -p 20
+
+arduinoJsonOverrideSanityCheck: 
+	@${savelog} ${arduinoJsonBackupFile}
 
 
 ${bridgesHtmlFile}: ${triggerFile}
