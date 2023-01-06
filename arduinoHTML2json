@@ -22,7 +22,7 @@ result[baseDN]={
 baseDN='ou=arduino,ou=phonebook,dc=hamshackhotline,dc=com'
 result[baseDN]={
     'objectClass': ['top','organizationalUnit'],
-    'ou': ['links'],
+    'ou': ['arduino'],
     'description': ['container for entries']
 }
 
