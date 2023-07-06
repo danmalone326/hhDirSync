@@ -122,7 +122,7 @@ ${phonebookJsonFile}: ${phonebookHtmlFile}
 	${cat} ${phonebookHtmlFile} | ./directoryHTML2json > ${phonebookJsonFile}
 
 ${phonebookJsonBackupFile}: ${phonebookJsonFile}
-	-${scriptDir}/compareBackupCopy -s ${phonebookJsonFile} -d ${phonebookJsonBackupFile} -p 1
+	-${scriptDir}/compareBackupCopy -s ${phonebookJsonFile} -d ${phonebookJsonBackupFile} -p 10
 
 phonebookJsonOverrideSanityCheck: 
 	@${savelog} ${phonebookJsonBackupFile}
