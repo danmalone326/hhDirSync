@@ -1,0 +1,256 @@
+#!/usr/bin/python3
+#
+# zcat -f $(ls -1t /var/log/slapd.log*) | ./slapdLogParser > slapdLog.csv
+# download slapdLog.csv
+# in google sheet, file -> import -> upload -> drag file -> replace current sheet -> import data
+#
+import re
+import fileinput
+import json
+import csv
+import sys
+
+debug = False
+
+log = []
+tempLog = {}
+
+# set up regex
+lineRegex = re.compile(r"""^\[(?P<time>.*)\].*conn=(?P<connNum>\d+) (?P<event>.*)""")
+connectionRegex = re.compile(r"""fd=(?P<fd>\-?\d+) (?P<action>ACCEPT) from (IP|PATH)=(?P<client>\S*) \((IP|PATH)=(?P<server>\S*)\)""")
+operationRegex = re.compile(r"""op=(?P<opnum>\-?\d+) (?P<operation>BIND|ADD|MOD|DEL|SRCH|SEARCH RESULT|RESULT|UNBIND|EXT|ABANDON|do_extended:|do_search:|do_bind:) ?(?P<parameters>.+)?""")
+closeRegex = re.compile(r"""fd=(?P<fd>\-?\d+) (?P<action>closed)""")
+
+
+parameterSplitRegex = re.compile(r"""(?P<key>\w+)=(?P<value>(?:(?!\s\w+=).)*)""")
+
+def splitParamaters(string):
+    parameters = {}
+
+    remainingString = string
+
+    while remainingString:
+        if debug:
+            print(remainingString)
+        regexMatch = parameterSplitRegex.match(remainingString)
+        if regexMatch:
+            key = regexMatch.group("key")
+            value = regexMatch.group("value")
+            remainingString = remainingString[len(key+"="+value+" "):]
+
+            if (value[:1] == '"' and value[-1:] == '"'):
+                value = value[1:-1]
+
+            parameters[key]=value
+            if debug:
+                print(key)
+                print(value)
+
+        else:
+            break
+    return parameters
+
+def newConnection(connNum):
+    tempLog.setdefault(connNum,{})
+    tempLog[connNum]['connNum'] = connNum
+
+
+def saveConnection(connNum):
+    # append this connection to the log list
+    log.append(tempLog[connNum])
+    tempLog.pop(connNum)
+
+# receives each log event in the format:
+#  {'time': "04-09-2023 14:48:37", 'connNum': 1234, 'event': "the rest"}
+def matchEvent(lineData):
+    connNum = lineData['connNum']
+
+    # using the while true just to be able to break out
+    while True:
+        # search for ACCEPT indicating a new connection
+        regexMatch = connectionRegex.match(lineData['event'])
+        if regexMatch:
+            action = regexMatch.group("action")
+
+            # if a previous connection was seen with this connection number, then close the previous one first
+            if action in tempLog[connNum]:
+                saveConnection(connNum)
+                newConnection(connNum)
+            
+            tempLog[connNum]['startTime'] = lineData['time']
+            tempLog[connNum].setdefault(action,{})
+            tempLog[connNum][action]['fd'] = regexMatch.group("fd")
+            tempLog[connNum][action]['client'] = regexMatch.group("client")
+            tempLog[connNum][action]['server'] = regexMatch.group("server")
+
+            lineData['fd'] = regexMatch.group("fd")
+            lineData['action'] = regexMatch.group("action")
+            lineData['clientIP'] = regexMatch.group("client")
+            lineData['serverIP'] = regexMatch.group("server")
+            break
+
+        # this matches the LDAP operations: BIND|ADD|MOD|DEL|SRCH|SEARCH RESULT|RESULT|UNBIND
+        regexMatch = operationRegex.match(lineData['event'])
+        if regexMatch:
+            tempLog[connNum]['endTime'] = lineData['time']
+
+            tempLog[connNum].setdefault('opnum',{})
+
+            opnum = regexMatch.group("opnum")
+            tempLog[connNum]['opnum'].setdefault(opnum,{})
+
+            operation = regexMatch.group("operation")
+            tempLog[connNum]['opnum'][opnum].setdefault(operation,{})
+
+            lineData['opnum'] = opnum
+            lineData['operation'] = operation
+
+            if regexMatch.group("parameters"):
+                parameters = splitParamaters(regexMatch.group("parameters"))
+                tempLog[connNum]['opnum'][opnum][operation].update(parameters)
+                lineData['parameters'] = parameters
+            break
+        
+        # this matches the close operation
+        regexMatch = closeRegex.match(lineData['event'])
+        if regexMatch:
+            tempLog[connNum]['endTime'] = lineData['time']
+
+            action = regexMatch.group("action")
+            tempLog[connNum].setdefault(action,{})
+            tempLog[connNum][action]['fd'] = regexMatch.group("fd")
+
+            lineData['fd'] = regexMatch.group("fd")
+            lineData['action'] = regexMatch.group("action")
+
+            saveConnection(connNum)
+            break
+
+        # we only get here if this event wasn't handled
+        print(f"event not found for conn: {connNum}",file=sys.stderr)
+        print(lineData['event'],file=sys.stderr)
+        break
+
+    del lineData['event']
+
+
+def parseStats(log):
+    searchCount = 0
+    searchResults = 0
+    for c in log:
+        # print(c['connNum'])
+        # print(json.dumps(c, indent=4))
+
+        if "opnum" in c:
+            # print("opnum")
+            for o in c["opnum"]:
+                # print(c["opnum"][o])
+                if ("SRCH" in c["opnum"][o]) and ("base" in c["opnum"][o]["SRCH"] and c["opnum"][o]["SRCH"]["base"] == "\"ou=phonebook,dc=hamshackhotline,dc=com\""):
+                    # print(c["opnum"][o])
+                    searchCount += 1
+                    if ("SEARCH RESULT" in c["opnum"][o]) and ("nentries" in c["opnum"][o]["SEARCH RESULT"]):
+                        searchResults += int(c["opnum"][o]["SEARCH RESULT"]["nentries"])
+
+    print(searchCount)
+    print(searchResults)
+
+def toSheetTime(str):
+    result = str[6:10] + '-' + str[3:5] + '-' + str[0:2] + str[10:]
+    return result
+
+def parseIP(str):
+    result = str.split(':')[0]
+    return result
+
+def printCSV(log):
+    csvWriter = csv.writer(sys.stdout)
+
+    outputRow = [
+        "startTime",
+        "connNum",
+        "clientIP",
+        "opnum",
+        "err",
+        "nentries",
+        "base",
+        "filter",
+        "attr"
+    ]
+    csvWriter.writerow(outputRow)
+
+    for connection in log:
+        if ("startTime" in connection and "ACCEPT" in connection):
+            connNum = connection.get("connNum","")
+            startTime = toSheetTime(connection["startTime"])
+            clientIP = parseIP(connection["ACCEPT"]["client"])
+
+            if ("opnum" in connection):
+                for opnum in connection["opnum"]:
+                    op = connection["opnum"][opnum]
+                    if ("SEARCH RESULT" in op):
+                        searchResult = op["SEARCH RESULT"]
+                        err = searchResult.get("err","")
+                        nentries = searchResult.get("nentries","")
+                        if ("SRCH" in op):
+                            search = op["SRCH"]
+                        else:
+                            search = {}
+
+                        base = search.get("base","")
+                        filter = search.get("filter","")
+                        attr = search.get("attr","")
+
+                        outputRow = [
+                            startTime,
+                            connNum,
+                            clientIP,
+                            opnum,
+                            err,
+                            nentries,
+                            base,
+                            filter,
+                            attr
+                        ]
+
+                        csvWriter.writerow(outputRow)
+
+for line in fileinput.input():
+#    print(line)
+    # this basically parses for the lines we're interested in
+    # they look something like this:
+    # [04-09-2023 14:48:37] slapd debug  conn=4259 op=1 SRCH base=...
+    # it just gets the time, connection number, and event (the rest) and passes it on to the event matcher
+    regexMatch = lineRegex.match(line)
+    if regexMatch:
+        # print(regexMatch)
+        lineData = {
+        'time': regexMatch.group("time"),
+        'connNum': regexMatch.group("connNum"),
+        'event': regexMatch.group("event")
+        }
+        # print(lineData)
+
+        connNum = lineData['connNum']
+        newConnection(connNum)
+        
+        matchEvent(lineData)
+
+        # print(lineData)
+
+# handle the remaining unclosed connections
+unclosedCount = 0
+for connNum in list(tempLog):
+    unclosedCount += 1
+    saveConnection(connNum)
+
+# print(f"unclosed: {unclosedCount}")
+
+# parseStats(log)
+
+# print(json.dumps(log[0],indent = 4))
+
+printCSV(log)
+
+
+
+# print(json.dumps(tempLog, indent = 4))
