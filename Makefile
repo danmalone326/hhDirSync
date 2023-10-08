@@ -11,11 +11,12 @@ ldapAgentBindDN := $(call getProperty,ldapAgentBindDN)
 ldapAgentBindPassword := $(call getProperty,ldapAgentBindPassword)
 
 # Shouldn't need to change anything else
-phonebookUrl=https://apps.hamshackhotline.com:9091/results.php
-audioUrl=https://apps.hamshackhotline.com:9091/audio.php
-linksUrl=https://apps.hamshackhotline.com:9091/links.php
-arduinoUrl=https://apps.hamshackhotline.com:9091/arduino.php
-bridgesUrl=https://apps.hamshackhotline.com:9091/bridges.php
+directoryUrlPrefix=https://apps.hamshackhotline.com
+phonebookUrl=${directoryUrlPrefix}/results.php
+audioUrl=${directoryUrlPrefix}/audio.php
+linksUrl=${directoryUrlPrefix}/links.php
+arduinoUrl=${directoryUrlPrefix}/arduino.php
+bridgesUrl=${directoryUrlPrefix}/bridges.php
 
 scriptDir=${baseDir}
 sourceDir=${baseDir}/source
