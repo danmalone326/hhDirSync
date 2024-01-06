@@ -240,7 +240,7 @@ ${lastUpdateTimestampFile}: ${updatesLdifBackupFile}
 	@echo $$(${cat} ${updatesLdifBackupFile} | ${grep} ^dn: | ${wc} -l) "update(s) generated"
 	@echo -n ${ldapAgentBindPassword} > ${ldapAgentPasswordFile}
 	@chmod og-rwx ${ldapAgentPasswordFile}
-	${ldapmodify} -D ${ldapAgentBindDN} -x -y ${ldapAgentPasswordFile} -f ${updatesLdifBackupFile}
+	${ldapmodify} -c -D ${ldapAgentBindDN} -x -y ${ldapAgentPasswordFile} -f ${updatesLdifBackupFile}
 	@${rm} -f ${ldapAgentPasswordFile}
 
 
