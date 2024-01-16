@@ -14,3 +14,10 @@ ldapAgentBindDN=
 
 # ldapAgentBindPassword - The Password for the above entry
 ldapAgentBindPassword=
+
+# mysql properties
+# host
+dbHost=
+dbUser=
+dbPassword=
+dbSchema=
