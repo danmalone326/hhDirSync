@@ -25,7 +25,6 @@ dataDir=${baseDir}/data
 
 ldapAgentPasswordFile=${scriptDir}/ldapAgentPassword.properties
 
-curl=/usr/bin/curl
 cat=/usr/bin/cat
 grep=/usr/bin/grep
 wc=/usr/bin/wc
@@ -78,23 +77,18 @@ triggerLocal:
 ${triggerFile}: 
 	${test} -f ${triggerFile} || ${touch} ${triggerFile}
 
-phonebookHtmlFile=${workingDir}/directory.html
 phonebookJsonFile=${workingDir}/directory.json
 phonebookJsonBackupFile=${dataDir}/directory.json
 
-audioHtmlFile=${workingDir}/audio.html
 audioJsonFile=${workingDir}/audio.json
 audioJsonBackupFile=${dataDir}/audio.json
 
-linksHtmlFile=${workingDir}/links.html
 linksJsonFile=${workingDir}/links.json
 linksJsonBackupFile=${dataDir}/links.json
 
-arduinoHtmlFile=${workingDir}/arduino.html
 arduinoJsonFile=${workingDir}/arduino.json
 arduinoJsonBackupFile=${dataDir}/arduino.json
 
-bridgesHtmlFile=${workingDir}/bridges.html
 bridgesJsonFile=${workingDir}/bridges.json
 bridgesJsonBackupFile=${dataDir}/bridges.json
 
@@ -113,14 +107,12 @@ currentJsonBackupFile=${dataDir}/current.json
 updatesLdif=${workingDir}/updates.ldif
 updatesLdifBackupFile=${dataDir}/updates.ldif
 
-localSources=${phonebookHtmlFile} ${audioHtmlFile} ${linksHtmlFile} ${arduinoHtmlFile} ${bridgesHtmlFile}
+localSources=${phonebookJsonFile} ${audioJsonFile} ${linksJsonFile} ${arduinoJsonFile} ${bridgesJsonFile}
 sourceJsonBackupFiles=${phonebookJsonBackupFile} ${audioJsonBackupFile} ${linksJsonBackupFile} ${arduinoJsonBackupFile} ${bridgesJsonBackupFile} ${vanityJsonBackupFile}
 
-${phonebookHtmlFile}: ${triggerFile}
-	${curl} -s -o ${phonebookHtmlFile} ${phonebookUrl}
 
-${phonebookJsonFile}: ${phonebookHtmlFile}
-	${cat} ${phonebookHtmlFile} | ./directoryHTML2json > ${phonebookJsonFile}
+${phonebookJsonFile}: ${triggerFile}
+	./hhUsers2json > ${phonebookJsonFile}
 
 ${phonebookJsonBackupFile}: ${phonebookJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${phonebookJsonFile} -d ${phonebookJsonBackupFile} -p 10
@@ -129,11 +121,8 @@ phonebookJsonOverrideSanityCheck:
 	@${savelog} ${phonebookJsonBackupFile}
 
 
-${audioHtmlFile}: ${triggerFile}
-	${curl} -s -o ${audioHtmlFile} ${audioUrl}
-
-${audioJsonFile}: ${audioHtmlFile}
-	${cat} ${audioHtmlFile} | ./audioHTML2json > ${audioJsonFile}
+${audioJsonFile}: ${triggerFile}
+	./audioServices2json > ${audioJsonFile}
 
 ${audioJsonBackupFile}: ${audioJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${audioJsonFile} -d ${audioJsonBackupFile} -p 20
@@ -142,11 +131,8 @@ audioJsonOverrideSanityCheck:
 	@${savelog} ${audioJsonBackupFile}
 
 
-${linksHtmlFile}: ${triggerFile}
-	${curl} -s -o ${linksHtmlFile} ${linksUrl}
-
-${linksJsonFile}: ${linksHtmlFile}
-	${cat} ${linksHtmlFile} | ./linksHTML2json > ${linksJsonFile}
+${linksJsonFile}: ${triggerFile}
+	./hhRflinks2json > ${linksJsonFile}
 
 ${linksJsonBackupFile}: ${linksJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${linksJsonFile} -d ${linksJsonBackupFile} -p 20
@@ -155,11 +141,8 @@ linksJsonOverrideSanityCheck:
 	@${savelog} ${linksJsonBackupFile}
 
 
-${arduinoHtmlFile}: ${triggerFile}
-	${curl} -s -o ${arduinoHtmlFile} ${arduinoUrl}
-
-${arduinoJsonFile}: ${arduinoHtmlFile}
-	${cat} ${arduinoHtmlFile} | ./arduinoHTML2json > ${arduinoJsonFile}
+${arduinoJsonFile}: ${triggerFile}
+	./hhArduino2json > ${arduinoJsonFile}
 
 ${arduinoJsonBackupFile}: ${arduinoJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${arduinoJsonFile} -d ${arduinoJsonBackupFile} -p 20
@@ -168,11 +151,8 @@ arduinoJsonOverrideSanityCheck:
 	@${savelog} ${arduinoJsonBackupFile}
 
 
-${bridgesHtmlFile}: ${triggerFile}
-	${curl} -s -o ${bridgesHtmlFile} ${bridgesUrl}
-
-${bridgesJsonFile}: ${bridgesHtmlFile}
-	${cat} ${bridgesHtmlFile} | ./bridgesHTML2json > ${bridgesJsonFile}
+${bridgesJsonFile}: ${triggerFile}
+	./hhBridge2json > ${bridgesJsonFile}
 
 ${bridgesJsonBackupFile}: ${bridgesJsonFile}
 	-${scriptDir}/compareBackupCopy -s ${bridgesJsonFile} -d ${bridgesJsonBackupFile} -p 20
