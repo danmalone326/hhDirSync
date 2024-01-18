@@ -1,51 +1,16 @@
 #!/usr/bin/python3
 
-# Reads the HH Arduino Bridges HTML page from stdin and outputs a json representation of the entries
+# Reads the HH Arduino table and outputs a json representation of the entries
 # desired to be in the LDAP directory
 
 # Importing the required modules 
 import sys
 import json
 import mysql.connector
+from common import *
 
-propertiesFilename = 'hhAgent.properties'
-prop = {}
-def readProperties():
-    global prop
-    with open(propertiesFilename, 'r') as f:
-        for line in f:
-            line = line.rstrip() #removes trailing whitespace and '\n' chars
-
-            if "=" not in line: continue #skips blanks and comments w/o =
-            if line.startswith("#"): continue #skips comments which contain =
-
-            k, v = line.split("=", 1)
-            prop[k] = v
-
-def connectDB(host,user,passwd,schema):
-    try:
-        config = {
-            "host": host,
-            "user": user,
-            "password": passwd,
-            "database": schema,
-        }
-        db = mysql.connector.connect(**config)
-        cursor = db.cursor()
-        cursor.execute("SELECT VERSION()")
-        results = cursor.fetchone()
-        # Check if anything at all is returned
-        if results:
-            return db
-        else:
-            return None
-    except mysql.connector.errors.ProgrammingError as ex:
-        print("ERROR IN CONNECTION")
-        print(ex)
-        return None
-
-readProperties()
-db = connectDB(prop['dbHost'], prop['dbUser'], prop['dbPassword'], prop['dbSchema'])
+properties = readProperties()
+db = connectDB(properties['dbHost'], properties['dbUser'], properties['dbPassword'], properties['dbSchema'])
 
 baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
 
