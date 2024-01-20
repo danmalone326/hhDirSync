@@ -1,0 +1,71 @@
+#!/usr/bin/python3
+
+# Reads the HH RF Links table and outputs a json representation of the entries
+# desired to be in the LDAP directory
+
+# Importing the required modules 
+import sys
+import json
+import mysql.connector
+from common import *
+
+properties = readProperties()
+db = connectDB(properties['dbHost'], properties['dbUser'], properties['dbPassword'], properties['dbSchema'])
+
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
+
+result={}
+
+# first add the container for these entries
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phonebook'],
+    'description': ['container for entries']
+}
+
+baseDN='ou=links,ou=phonebook,dc=hamshackhotline,dc=com'
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['links'],
+    'description': ['container for entries']
+}
+
+if db:
+    cursor = db.cursor()
+    cursor.execute('select Id,Number,Description,City,State,Country,Frequency,plTone from hhRflinks;')
+    # 0 ID
+    # 1 Number
+    # 2 Description
+    # 3 City
+    # 4 State
+    # 5 Country
+    # 6 Frequency
+    # 7 plTone
+    # 8 Mode - Null values in here.
+    for row in cursor.fetchall():
+        number=str(row[1])
+        description=row[2].strip().upper()
+        city=row[3].strip()
+        state=row[4].strip()
+        country=row[5].strip()
+        frequency=row[6].strip()
+        plTone=row[7].strip()
+        # mode=row[8].strip()
+
+        callsign=description.split()[0].strip()
+
+        id="l-"+number
+        dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+
+        result[dn]={
+            'objectClass': ['top','hamshackhotlineComEntry'],
+            'cn': [description], 
+            'givenName': [description],
+            'name': [description],
+            'callsign': [callsign],
+            'telephoneNumber': [number], 
+            'displayName': [description],
+            'hamshackhotlineComEntryID': [id]
+        }
+
+json.dump(result,sys.stdout)

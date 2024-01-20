@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+source hhAgent.properties
+
+echo "Testing connectivity to mysql database:"
+echo "   Host:   $dbHost"
+echo "   Schema: $dbSchema"
+echo "   User:   $dbUser"
+echo "-----"
+
+mysql --defaults-extra-file=/dev/stdin --host=$dbHost $dbSchema -e "show tables;" <<EOF 1>/dev/null
+[client]
+user=$dbUser
+password=$dbPassword
+EOF
+
+result=${?}
+
+if [ ${result} -eq 1 ]; 
+then 
+    echo Fail 
+else
+    echo Success    
+fi
+
+echo ""
+
+
+echo "Testing connectivity to ldap directory:"
+echo "   Host:           localhost"
+echo "   Base DN:        $ldapBaseDN"
+echo "   User Bind DN:   $ldapAgentBindDN"
+echo "-----"
+
+ldapAgentPasswordFile=${baseDir}/ldapAgentPassword.properties
+echo -n ${ldapAgentBindPassword} > ${ldapAgentPasswordFile}
+chmod og-rwx ${ldapAgentPasswordFile} 
+output=$(/usr/bin/ldapsearch -D $ldapAgentBindDN -x -y ${ldapAgentPasswordFile} -b $ldapBaseDN -s base -LLL "(objectclass=*)" dn 3>&1 1>/dev/null 2>&3-)
+rm -f ${ldapAgentPasswordFile}
+
+if [ -z "$output" ]; 
+then 
+    echo Success
+else
+    echo $output
+    echo Fail
+fi
+

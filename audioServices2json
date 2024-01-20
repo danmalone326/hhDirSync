@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 
-# Reads the HH Arduino Bridges HTML page from stdin and outputs a json representation of the entries
+# Reads the HH Audio Services table and outputs a json representation of the entries
 # desired to be in the LDAP directory
 
 # Importing the required modules 
 import sys
-from bs4 import BeautifulSoup
 import json
+import mysql.connector
+from common import *
+
+properties = readProperties()
+db = connectDB(properties['dbHost'], properties['dbUser'], properties['dbPassword'], properties['dbSchema'])
 
 baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
 
@@ -19,31 +23,26 @@ result[baseDN]={
     'description': ['container for entries']
 }
 
-baseDN='ou=arduino,ou=phonebook,dc=hamshackhotline,dc=com'
+baseDN='ou=audio,ou=phonebook,dc=hamshackhotline,dc=com'
 result[baseDN]={
     'objectClass': ['top','organizationalUnit'],
-    'ou': ['arduino'],
+    'ou': ['audio'],
     'description': ['container for entries']
 }
 
+if db:
+    cursor = db.cursor()
+    cursor.execute('select Id,Name,Number,Notes,Status from audioServices;')
+    # 0 ID
+    # 1 Name
+    # 2 Number
+    # 3 Notes
+    # 4 Status
+    for row in cursor.fetchall():
+        name=row[1].strip()
+        number=str(row[2]).strip()
 
-soup = BeautifulSoup(sys.stdin.buffer,'html.parser')
-
-# for getting the data 
-HTML_data = soup.find_all("table")[2].find("tbody").find_all("tr")
-
-for element in HTML_data:
-    sub_data = []
-    for sub_element in element.find_all("td"):
-        try:
-            sub_data.append(sub_element.get_text())
-        except:
-            continue
-    if (len(sub_data) >= 3):
-        name=sub_data[2].strip()
-        callsign=name.split()[0].strip()
-        tel=sub_data[0].strip()
-        id="al-"+tel
+        id="a-"+number
         dn="hamshackhotlineComEntryID=" + id + ","+baseDN
 
         result[dn]={
@@ -51,8 +50,7 @@ for element in HTML_data:
             'cn': [name], 
             'givenName': [name],
             'name': [name],
-            'callsign': [callsign],
-            'telephoneNumber': [tel], 
+            'telephoneNumber': [number], 
             'displayName': [name],
             'hamshackhotlineComEntryID': [id]
         }

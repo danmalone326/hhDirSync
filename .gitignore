@@ -4,5 +4,9 @@ tmp/
 # Properties file may also include passwords
 *.properties
 
+# for python
+__pycache__/
+*.py[cod]
+
 # vscode settings
 .vscode/

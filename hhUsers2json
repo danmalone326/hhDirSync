@@ -1,0 +1,81 @@
+#!/usr/bin/python3
+
+# Reads the HH users table and outputs a json representation of the entries
+# desired to be in the LDAP directory
+
+# Importing the required modules 
+import sys
+import json
+import mysql.connector
+from common import *
+
+properties = readProperties()
+db = connectDB(properties['dbHost'], properties['dbUser'], properties['dbPassword'], properties['dbSchema'])
+
+baseDN='ou=phonebook,dc=hamshackhotline,dc=com'
+
+result={}
+
+# first add the container for these entries
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phonebook'],
+    'description': ['container for entries']
+}
+
+baseDN='ou=phones,ou=phonebook,dc=hamshackhotline,dc=com'
+result[baseDN]={
+    'objectClass': ['top','organizationalUnit'],
+    'ou': ['phones'],
+    'description': ['container for entries']
+}
+
+if db:
+    cursor = db.cursor()
+    cursor.execute('select Id,Callsign,fName,City,State,Country,Network,Number,rGroup from hhUsers;')
+    # 0 ID
+    # 1 Callsign
+    # 2 Name
+    # 3 City
+    # 4 State
+    # 5 Country
+    # 6 Network
+    # 7 HH Number
+    # 8 Ring Group
+    for row in cursor.fetchall():
+        callsign=row[1].strip()
+        name=row[2].strip()
+        city=row[3].strip().upper()
+        state=row[4].strip()
+        country=row[5].strip()
+        number=row[7].strip()
+        
+        idPrefix=number
+        id=idPrefix
+        dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+
+        # some numbers had multiple entries
+        count=0
+        while (dn in result):
+            count+=1
+            id=idPrefix + "-" + str(count)
+            dn="hamshackhotlineComEntryID=" + id + ","+baseDN
+
+        result[dn]={
+            'objectClass': ['top','hamshackhotlineComEntry'],
+            'cn': [name,callsign], 
+            'givenName': [name],
+            'name': [name],
+            'callsign': [callsign],
+            'telephoneNumber': [number], 
+            'displayName': [callsign+" "+name],
+            'hamshackhotlineComEntryID': [id]
+        }
+        if (city):
+            result[dn]['l'] = [city]
+        if (state):
+            result[dn]['st'] = [state]
+        if (country and (len(country) == 2)):
+            result[dn]['c'] = [country]
+
+json.dump(result,sys.stdout)
