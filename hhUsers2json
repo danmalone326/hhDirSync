@@ -32,7 +32,7 @@ result[baseDN]={
 
 if db:
     cursor = db.cursor()
-    cursor.execute('select Id,Callsign,fName,City,State,Country,Network,Number,rGroup from hhUsers;')
+    cursor.execute('select Id,Callsign,fName,City,State,Country,Network,Number from hhUsers;')
     # 0 ID
     # 1 Callsign
     # 2 Name
