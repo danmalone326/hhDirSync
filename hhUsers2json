@@ -38,6 +38,7 @@ if db:
     """
     cursor = db.cursor()
     cursor.execute(sqlStr)
+
     # 0 ID
     # 1 Callsign
     # 2 Name
