@@ -31,8 +31,14 @@ result[baseDN]={
 }
 
 if db:
+    sqlStr = """\
+        SELECT Id,Callsign,fName,City,State,Country,Network,Number
+          FROM hhUsers 
+         WHERE NOT ((Number LIKE '94___') OR (Number LIKE '84___') OR (Number = '88xxxxxxx'));
+    """
     cursor = db.cursor()
-    cursor.execute('select Id,Callsign,fName,City,State,Country,Network,Number from hhUsers;')
+    cursor.execute(sqlStr)
+
     # 0 ID
     # 1 Callsign
     # 2 Name
